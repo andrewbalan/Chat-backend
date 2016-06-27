@@ -4,7 +4,8 @@ let Chat     = require('models/chat');
 let User     = require('models/user');
 let chai     = require('chai');
 let co       = require('co');
-let testData = require('../test_data');
+let testData = require('testdata/chat');
+let clear    = require('clear');
 
 let expect    = chai.expect;
 let usersData = testData.users;
@@ -24,6 +25,8 @@ module.exports = app => {
       }).catch(done);
     });
 
+    after(clear);
+
     it('Should not create a chat without caption and owner', done => {
       let chat = new Chat({});
       chat.save(err => {
@@ -37,7 +40,7 @@ module.exports = app => {
     it('Should create a new chat', done => {
       co(function*() {
         let user = yield User.findOne({});
-        
+
         let chat = new Chat({
           caption: chatsData[0].caption,
           creator: user._id
@@ -154,7 +157,7 @@ module.exports = app => {
           yield chat.postMessage(user._id, chatsData[0].messages[0]);
           chat = yield Chat.findOne({caption: chatsData[0].caption});
 
-          expect(user._id.equals(chat.messages[0].sender)).to.equal(true);
+          expect(user._id.equals(chat.messages[0]._sender)).to.equal(true);
           expect(chat.messages).to.have.lengthOf(1);
           expect(chat.messages[0].text).to.equal('Hello world');
 
@@ -164,7 +167,8 @@ module.exports = app => {
     });
 
     describe('getMessages()', () => {
-      let anyId;
+      let anyMessageId;
+      let sender;
 
       before(done => {
         co(function*() {
@@ -176,9 +180,10 @@ module.exports = app => {
           yield chat.postMessage(user._id, chatsData[0].messages[3]);
           yield chat.postMessage(user._id, chatsData[0].messages[4]);
           yield chat.postMessage(user._id, chatsData[0].messages[5]);
-          
-          chat  = yield Chat.findOne({caption: chatsData[0].caption});
-          anyId = chat.messages[3]._id;
+
+          chat         = yield Chat.findOne({caption: chatsData[0].caption});
+          anyMessageId = chat.messages[3]._id;
+          sender       = user;
 
           done();
         }).catch(done);
@@ -187,13 +192,16 @@ module.exports = app => {
       it('Should return 2 messages which older than certain id', done => {
         co(function*() {
           let chat = yield Chat.findOne({caption: chatsData[0].caption});
-          let msgs = yield chat.getMessages('lower', anyId, 2);
+          let msgs = yield chat.getMessages('lower', anyMessageId, 2);
 
           expect(msgs).to.be.an('array');
           expect(msgs).to.have.lengthOf(2);
           expect(msgs[0].text).to.equal(chatsData[0].messages[2]);
           expect(msgs[1].text).to.equal(chatsData[0].messages[1]);
-          
+
+          expect(msgs[1]._sender._id.toString()).to.equal(sender._id.toString());
+          expect(msgs[1]._sender.name).to.equal(sender.name);
+
           done();
         }).catch(done);
       });
@@ -201,11 +209,14 @@ module.exports = app => {
       it('Should return 1 message which newer than certain id', done => {
         co(function*() {
           let chat = yield Chat.findOne({caption: chatsData[0].caption});
-          let msgs = yield chat.getMessages('greater', anyId, 1);
-          
+          let msgs = yield chat.getMessages('greater', anyMessageId, 1);
+
           expect(msgs).to.be.an('array');
           expect(msgs).to.have.lengthOf(1);
           expect(msgs[0].text).to.equal(chatsData[0].messages[4]);
+
+          expect(msgs[0]._sender._id.toString()).to.equal(sender._id.toString());
+          expect(msgs[0]._sender.name).to.equal(sender.name);
 
           done();
         }).catch(done);
@@ -227,7 +238,7 @@ module.exports = app => {
         co(function*() {
           let chat = yield Chat.findOne({caption: chatsData[0].caption});
           let msgs = yield chat.getMessages(null, null, 3);
-          
+
           expect(msgs).to.have.lengthOf(3);
           expect(msgs[0].text).to.equal(chatsData[0].messages[3]);
           expect(msgs[1].text).to.equal(chatsData[0].messages[4]);

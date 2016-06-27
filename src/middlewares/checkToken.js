@@ -4,11 +4,20 @@ let jsonwebtoken = require('jsonwebtoken');
 let secret       = require('config').key;
 let mongoose     = require('mongoose');
 
-module.exports = function(req, res, next) {
-  let token = req.body.token || req.params.token || req.headers['x-access-token'];
+/**
+ * Express middleware for checking token
+ * @param  {Object}   req
+ * @param  {Object}   res
+ * @param  {Function} next
+ * @return next invocation
+ */
+module.exports = function (req, res, next) {
+  let token = req.body.token ||
+    req.params.token ||
+    req.headers['x-access-token'];
 
   if (token) {
-    jsonwebtoken.verify(token, secret, function(err, decoded) {
+    jsonwebtoken.verify(token, secret, function (err, decoded) {
       if (err) {
         res.status(401).json({
           success: false,
@@ -26,4 +35,4 @@ module.exports = function(req, res, next) {
       msg: "no token provided"
     });
   }
-}
+};

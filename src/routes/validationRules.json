@@ -1,0 +1,70 @@
+{
+  "signup": {
+    "name": {
+      "type": "String",
+      "length": {
+        "value": {
+          "min": 3,
+          "max": 20
+        },
+        "message": "3 to 20 characters required"
+      },
+      "locale": {
+        "value": [
+          "en-US"
+        ],
+        "message": "only letters and numbers are allowed"
+      }
+    },
+    "username": {
+      "type": "String",
+      "length": {
+        "value": {
+          "min": 4,
+          "max": 25
+        },
+        "message": "4 to 25 characters required"
+      },
+      "locale": {
+        "value": [
+          "en-US"
+        ],
+        "message": "only letters and numbers are allowed"
+      }
+    },
+    "password": {
+      "type": "String",
+      "length": {
+        "value": {
+          "min": 6,
+          "max": 25
+        },
+        "message": "6 to 25 characters required"
+      },
+      "locale": {
+        "value": [
+          "en-US"
+        ],
+        "message": "only letters and numbers are allowed"
+      }
+    },
+    "avatar": {
+      "type": "File",
+      "extension": {
+        "value": [
+          ".gif",
+          ".png",
+          ".jpg",
+          ".jpeg"
+        ],
+        "message": "Only gif, png, jpg, jpeg pictures are allowed"
+      },
+      "size": {
+        "value": {
+          "max": 2000
+        },
+        "message": "file is too big"
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "createChat": {
+    "caption": {
+      "type": "String",
+      "length": {
+        "value": {
+          "min": 4,
+          "max": 30
+        },
+        "message": "4 to 30 characters required"
+      }
+    },
+    "avatar": {
+      "type": "File",
+      "extension": {
+        "value": [
+          ".gif",
+          ".png",
+          ".jpg",
+          ".jpeg"
+        ],
+        "message": "Only gif, png, jpg, jpeg pictures are allowed"
+      },
+      "size": {
+        "value": {
+          "max": 2000
+        },
+        "message": "file is too big"
+      }
+    }
+  }
+}

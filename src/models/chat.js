@@ -1,14 +1,18 @@
 'use strict';
 
-let CannotDelete = require('exceptions/CannotDelete');
 let mongoose     = require('mongoose');
-let Schema       = mongoose.Schema;
 let co           = require('co');
+let CannotDelete = require('exceptions/cannotDeleteException');
+let Schema       = mongoose.Schema;
 
 let chatSchema = new Schema({
   caption: {
     type: String,
     required: true
+  },
+  avatar: {
+    type: String,
+    default: 'default.png'
   },
   _creator: {
     type: Schema.Types.ObjectId,
@@ -23,7 +27,7 @@ let chatSchema = new Schema({
       type: String,
       required: true
     },
-    sender: {
+    _sender: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'User'
@@ -35,6 +39,11 @@ let chatSchema = new Schema({
   }]
 });
 
+/**
+ * Push user to 'users' array
+ * @param  {ObjectId} userId
+ * @return {Promise}
+ */
 chatSchema.methods.addUser = function(userId) {
   return new Promise((resolve, reject) => {
     this.update({
@@ -48,12 +57,19 @@ chatSchema.methods.addUser = function(userId) {
       }
     );
   });
-}
+};
 
+/**
+ * Pull user from 'users' array
+ * @param  {ObjectId} userId
+ * @return {Promise}
+ */
 chatSchema.methods.removeUser = function(userId) {
   return new Promise((resolve, reject) => {
     if (this._creator.equals(userId)) {
-      return reject(new CannotDelete('trying to remove creator from users'));
+      return reject(
+        new CannotDelete('trying to remove creator from users')
+      );
     }
     this.update({
         $pull: {
@@ -66,13 +82,19 @@ chatSchema.methods.removeUser = function(userId) {
       }
     );
   });
-}
+};
 
+/**
+ * Push new message to 'messages' array
+ * @param  {ObjectId} senderId
+ * @param  {String} text
+ * @return {Promise}
+ */
 chatSchema.methods.postMessage = function(senderId, text) {
   return new Promise((resolve, reject) => {
     this.messages.push({
       text: text,
-      sender: senderId
+      _sender: senderId
     });
 
     let self = this;
@@ -82,19 +104,21 @@ chatSchema.methods.postMessage = function(senderId, text) {
       let chat = yield self.save();
 
       // Find a created message when collection is updated
-      for(let i in chat.messages)
+      for(let i in chat.messages) {
         if (chat.messages[i]._id === id) {
           var result = chat.messages[i];
           break;
         }
+      }
 
       // Populate sender
       let populationParams = {
-        path: 'sender',
+        path: '_sender',
         model: 'User',
         select: {
           name: 1,
           username: 1,
+          avatar: 1
         }
       };
       yield self.model('Chat').populate(result, populationParams);
@@ -102,8 +126,20 @@ chatSchema.methods.postMessage = function(senderId, text) {
       resolve(result);
     }).catch(reject);
   });
-}
+};
 
+/**
+ * Return array of messages.
+ * Possible usage:
+ *   "getMessages('lower', msgId, 2)" - return 2 message which older
+ *     msgId (instead of 'lower' could be 'greater')
+ *   "getMessages(null, null, 5)" - return 5 latest messages
+ *
+ * @param  {null | String: 'lower' or 'greater'} operator
+ * @param  {ObjectId} messageId
+ * @param  {Number} count
+ * @return {Promise}
+ */
 chatSchema.methods.getMessages = function(operator, messageId, count) {
   let params = [];
 
@@ -121,7 +157,7 @@ chatSchema.methods.getMessages = function(operator, messageId, count) {
     $project: {
       _id: "$messages._id",
       text: "$messages.text",
-      sender: "$messages.sender",
+      _sender: "$messages._sender",
       created: "$messages.created"
     }
   });
@@ -181,33 +217,37 @@ chatSchema.methods.getMessages = function(operator, messageId, count) {
 
     co(function*(){
       let msgs = yield self.model('Chat').aggregate(params).exec();
-      
-      // Get name and username for each message
+
+      // Get name and username for each sender of message
       let populationParams = {
-        path: 'sender',
+        path: '_sender',
         model: 'User',
         select: {
           name: 1,
           username: 1,
+          avatar: 1
         }
-      }
+      };
+
       yield self.model('Chat').populate(msgs, populationParams);
 
       resolve(msgs);
     }).catch(reject);
   });
-}
+};
 
 chatSchema.virtual('creator')
   .set(function (creator) {
     this._creator = creator;
-    
+
     // Push only unique elements
     if (this.users.indexOf(creator) == -1) {
       this.users.push(creator);
     }
   })
-  .get(function () { return this._creator; });
+  .get(function () {
+    return this._creator;
+  });
 
 
 module.exports = mongoose.model('Chat', chatSchema);

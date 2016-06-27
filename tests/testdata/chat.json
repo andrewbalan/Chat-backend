@@ -1,0 +1,51 @@
+{
+  "users": [
+    {
+      "name": "John",
+      "username": "Black",
+      "password": "pass123"
+    },
+    {
+      "name": "Paul",
+      "username": "White",
+      "password": "qwerty"
+    },
+    {
+      "name": "Ivan",
+      "username": "Petrov",
+      "password": "qwerty"
+    }
+  ],
+  "chats": [
+    {
+      "caption": "Simplechat",
+      "messages": [
+        "Hello world",
+        "How r u?",
+        "I'm fine",
+        "new awesome message",
+        "the weather is fine",
+        "last message"
+      ]
+    },
+    {
+      "caption": "Node.js discussing",
+      "messages": [
+        "Disconnecting clients after tests is very important. As I’ve discovered, not disconnecting can lead to the socket accumulating event listeners, which in turn can fire completely different tests than what you expect. It also leads to tests that pass 70% of the time, but fail in random ways.",
+        "A stream is an abstract interface implemented by various objects in Node.js. For example a request to an HTTP server is a stream, as is process.stdout. Streams are readable, writable, or both. All streams are instances of EventEmitter.",
+        "You can load the Stream base classes by doing require('stream'). There are base classes provided for Readable streams, Writable streams, Duplex streams, and Transform streams.",
+        "If a stream is both Readable and Writable, then it implements all of the methods and events. So, a Duplex or Transform stream is fully described by this API, though their implementation may be somewhat different.",
+        "Almost all Node.js programs, no matter how simple, use Streams in some way."
+      ]
+    },
+    {
+      "caption": "Science dicsussing",
+      "messages": [
+        "Physics is one of the oldest academic disciplines, perhaps the oldest through its inclusion of astronomy. Over the last two millennia, physics was a part of natural philosophy along with chemistry, biology, and certain branches of mathematics, but during the scientific revolution in the 17th century, the natural sciences emerged as unique research programs in their own right.",
+        "Chemistry is a branch of physical science that studies the composition, structure, properties and change of matter",
+        "Mathematicians resolve the truth or falsity of conjectures by mathematical proof",
+        "Physics became a separate science when early modern Europeans used experimental and quantitative methods to discover what are now considered to be the laws of physics."
+      ]
+    }
+  ]
+}
